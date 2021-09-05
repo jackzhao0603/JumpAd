@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+ These options MUST be specified here in order for the events to be received on first
+ start in Android 4.1.1
+
+    android:accessibilityFeedbackType="feedbackGeneric" 
+android:accessibilityEventTypes="typeWindowStateChanged"
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeNotificationStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagIncludeNotImportantViews"
+    android:canPerformGestures="true"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/accessibility_service_description"
+    android:notificationTimeout="100"
+    tools:ignore="UnusedAttribute" />
