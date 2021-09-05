@@ -6,13 +6,30 @@ import com.jackzhao.appmanager.PermissionManager
 
 object AdJumpManager {
     private const val TAG = "AdJumpManager"
-    var isEnable = false
-    fun isAdJumpEnable(context: Context): Boolean {
-        isEnable = PermissionManager.checkSelfAccessbility(context)
-        return isEnable
+    var mIsEnable = false
+
+    fun isAdJumpPermissionGranted(context: Context): Boolean {
+        mIsEnable = PermissionManager.checkSelfAccessbility(context)
+        return mIsEnable
     }
 
     fun gotoAccessiblityConfig(activity: Activity) {
         PermissionManager.gotoAccessibilitySettings(activity)
+    }
+
+    fun enableJump(activity: Activity, isEnable: Boolean): Boolean {
+        if (isEnable && !isAdJumpPermissionGranted(activity)) {
+            gotoAccessiblityConfig(activity)
+        } else {
+            mIsEnable = isEnable
+        }
+        return mIsEnable
+    }
+
+    fun isEnable(activity: Activity): Boolean {
+        if (!isAdJumpPermissionGranted(activity)) {
+            return false
+        }
+        return mIsEnable
     }
 }
