@@ -17,10 +17,11 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
     private var targetActivity = ""
     private val jumpStr = context.getString(R.string.jump)
 
-    private val keyList = listOf<String>(
+    private val keyList = listOf(
         "main",
         "splash",
-        "loading"
+        "loading",
+        "login"
     )
 
     init {
@@ -35,6 +36,7 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
             return false
         }
         targetActivity = getActivityName(event) ?: targetActivity
+        Log.e(TAG, "needToHandleEvent: $targetActivity")
         for (key in keyList) {
             if (targetActivity.lowercase().contains(key)) {
                 return true
@@ -63,7 +65,6 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
                             var rect = Rect()
                             child.getBoundsInScreen(rect)
                             val width = rect.right - rect.left
-                            Log.e(TAG, "extractString: $screenWidth --> $width-->$rect")
                             if (width < screenWidth / 8) {
                                 if (screenWidth - rect.right < screenWidth / 16) {
                                     clickNode(child)
