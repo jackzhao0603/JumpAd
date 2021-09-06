@@ -11,14 +11,16 @@ import com.jackzhao.adjump.accessibilityhandler.AccessibilityHandler
 import com.jackzhao.appmanager.AppManager
 
 class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
+
+
     private val TAG = "OpenScreenAdHandler"
     private var type = 0
     private var luncherAppPkg = ""
     private var targetActivity = ""
     private val jumpStr = context.getString(R.string.jump)
+    private var jumpRect: Rect? = null
 
     private val keyList = listOf(
-        "main",
         "splash",
         "loading",
         "login"
@@ -29,20 +31,14 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
     }
 
     override fun needToHandleEvent(event: AccessibilityEvent): Boolean {
+        targetActivity = getActivityName(event) ?: targetActivity
         if (event.isScrollable) {
             return false
         }
         if (event.packageName.equals(luncherAppPkg)) {
             return false
         }
-        targetActivity = getActivityName(event) ?: targetActivity
-        Log.e(TAG, "needToHandleEvent: $targetActivity")
-        for (key in keyList) {
-            if (targetActivity.lowercase().contains(key)) {
-                return true
-            }
-        }
-        return false
+        return true
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -50,6 +46,14 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
         type = event.eventType
         rootNodeInfo?.let {
             extractString(rootNodeInfo)
+            jumpRect?.let {
+                val point = Point(
+                    (it.left + it.right) / 2,
+                    (it.top + it.bottom) / 2
+                )
+                jumpRect = null
+                tryToClickPoint(rootNodeInfo, point)
+            }
         }
     }
 
@@ -61,22 +65,27 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
                     var child: AccessibilityNodeInfo? = null
                     try {
                         child = rootNodeInfo.getChild(i) ?: continue
+                        var rect = Rect()
                         if (child.isClickable && "android.view.View" == child.className) {
-                            var rect = Rect()
-                            child.getBoundsInScreen(rect)
-                            val width = rect.right - rect.left
-                            if (width < screenWidth / 8) {
-                                if (screenWidth - rect.right < screenWidth / 16) {
-                                    clickNode(child)
-                                }
-                                if (rect.left < screenWidth / 16) {
-                                    clickNode(child)
+                            for (key in keyList) {
+                                if (targetActivity.lowercase().contains(key)) {
+                                    child.getBoundsInScreen(rect)
+                                    val width = rect.right - rect.left
+                                    if (width < screenWidth / 8) {
+                                        if (screenWidth - rect.right < screenWidth / 16) {
+                                            clickNode(child)
+                                        }
+                                        if (rect.left < screenWidth / 16) {
+                                            clickNode(child)
+                                        }
+                                    }
                                 }
                             }
                         }
                         if (child.isEnabled && child.isVisibleToUser && !TextUtils.isEmpty(child.text)) {
                             val str = child.text.toString()
                             if (str.contains(jumpStr)) {
+                                child.getBoundsInScreen(rect)
                                 if (child.isClickable) {
                                     clickNode(child)
                                 } else {
@@ -91,6 +100,8 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
                                     } catch (e: Exception) {
                                         Log.w(TAG, "extractString: ", e)
                                     }
+                                    jumpRect = Rect()
+                                    child.getBoundsInScreen(jumpRect)
                                 }
                             }
                         }
@@ -116,9 +127,8 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
                     clickNode(child)
                 }
                 tryToClickChild(child)
-            } catch (e: ArrayIndexOutOfBoundsException) {
-            } catch (e: IllegalStateException) {
-            } catch (e: Exception) {
+            } catch (e: java.lang.Exception) {
+                Log.w(TAG, "tryToClickChild: ", e)
             } finally {
                 tryRecycle(child)
             }
