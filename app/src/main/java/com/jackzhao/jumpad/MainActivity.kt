@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Switch
 import androidx.compose.runtime.Composable
@@ -18,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.jackzhao.adjump.AdJumpManager
 import com.jackzhao.jumpad.ui.theme.JumpAdTheme
+import com.jackzhao.jumpad.ui.theme.White
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -29,11 +29,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AdJumpManager.init(baseContext)
         setContent {
             isAdJumpEnable = remember { mutableStateOf(AdJumpManager.isEnable(this)) }
             JumpAdTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
+                Surface(color = White) {
                     Row(
                         modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.Center,
@@ -51,17 +52,23 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(activity: MainActivity, isAdJumpEnable: MutableState<Boolean>) {
-    Switch(checked = isAdJumpEnable.value, onCheckedChange = {
-        isAdJumpEnable.value = AdJumpManager.enableJump(activity, !isAdJumpEnable.value)
-        GlobalScope.launch(Dispatchers.IO) {
-            for (i in 1..100) {
-                if (AdJumpManager.isAdJumpPermissionGranted(activity)) {
-                    activity.startActivity(Intent(activity, MainActivity::class.java))
-                    isAdJumpEnable.value = AdJumpManager.enableJump(activity, !isAdJumpEnable.value)
-                } else {
-                    delay(100)
+    Switch(checked = isAdJumpEnable.value,
+        onCheckedChange = {
+            if (!AdJumpManager.isAdJumpPermissionGranted(activity)) {
+                GlobalScope.launch(Dispatchers.IO) {
+                    for (i in 1..100) {
+                        if (AdJumpManager.isAdJumpPermissionGranted(activity)) {
+                            activity.startActivity(Intent(activity, MainActivity::class.java))
+                            delay(200)
+                            isAdJumpEnable.value =
+                                AdJumpManager.enableJump(activity, true)
+                            break
+                        } else {
+                            delay(100)
+                        }
+                    }
                 }
             }
-        }
-    })
+            isAdJumpEnable.value = AdJumpManager.enableJump(activity, !isAdJumpEnable.value)
+        })
 }
