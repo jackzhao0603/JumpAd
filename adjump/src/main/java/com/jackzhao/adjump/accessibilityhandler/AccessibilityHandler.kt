@@ -10,7 +10,6 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
-import java.lang.Exception
 
 abstract class AccessibilityHandler(service: AccessibilityService) {
     data class Point(var x: Int, var y: Int)
@@ -89,6 +88,46 @@ abstract class AccessibilityHandler(service: AccessibilityService) {
         builder.addStroke(GestureDescription.StrokeDescription(path, startTime, duration))
         val gesture = builder.build()
         service.dispatchGesture(gesture, callback, handler)
+    }
+
+    fun tryToClickChild(rootNodeInfo: AccessibilityNodeInfo) {
+        var child: AccessibilityNodeInfo? = null
+        for (i in 0 until rootNodeInfo.childCount) {
+            try {
+                child = rootNodeInfo.getChild(i) ?: continue
+                if (child.isClickable) {
+                    clickNode(child)
+                }
+                tryToClickChild(child)
+            } catch (e: java.lang.Exception) {
+                Log.w(TAG, "tryToClickChild: ", e)
+            } finally {
+                tryRecycle(child)
+            }
+        }
+    }
+
+    fun tryToClickParent(
+        rootNodeInfo: AccessibilityNodeInfo
+    ) {
+        var node = rootNodeInfo.parent
+        while (!node.isClickable) {
+            node = node.parent
+            if (node == null) {
+                return
+            }
+        }
+        if (node.isClickable) {
+            clickNode(node)
+        }
+    }
+
+    fun tryRecycle(info: AccessibilityNodeInfo?) {
+        try {
+            info?.recycle()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 }

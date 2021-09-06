@@ -2,7 +2,6 @@ package com.jackzhao.adjump.accessibilityhandler.impl
 
 import android.accessibilityservice.AccessibilityService
 import android.graphics.Rect
-import android.os.Looper
 import android.text.TextUtils
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -12,7 +11,6 @@ import com.jackzhao.adjump.accessibilityhandler.AccessibilityHandler
 import com.jackzhao.appmanager.AppManager
 import com.jackzhao.appmanager.utils.VersionUtils
 import java.util.*
-import java.util.logging.Handler
 
 class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(service) {
 
@@ -166,46 +164,6 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                 }
             }
         } catch (e: Exception) {
-        }
-    }
-
-    private fun tryToClickChild(rootNodeInfo: AccessibilityNodeInfo) {
-        var child: AccessibilityNodeInfo? = null
-        for (i in 0 until rootNodeInfo.childCount) {
-            try {
-                child = rootNodeInfo.getChild(i) ?: continue
-                if (child.isClickable) {
-                    clickNode(child)
-                }
-                tryToClickChild(child)
-            } catch (e: java.lang.Exception) {
-                Log.w(TAG, "tryToClickChild: ", e)
-            } finally {
-                tryRecycle(child)
-            }
-        }
-    }
-
-    private fun tryToClickParent(
-        rootNodeInfo: AccessibilityNodeInfo
-    ) {
-        var node = rootNodeInfo.parent
-        while (!node.isClickable) {
-            node = node.parent
-            if (node == null) {
-                return
-            }
-        }
-        if (node.isClickable) {
-            clickNode(node)
-        }
-    }
-
-    private fun tryRecycle(info: AccessibilityNodeInfo?) {
-        try {
-            info?.recycle()
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 }
