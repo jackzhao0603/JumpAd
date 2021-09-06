@@ -3,4 +3,5 @@
     <string name="accessibility_service_description">AdJump需要Accessibility权限,用来跳过广告</string>
     <string name="ad_jump">AdJump</string>
     <string name="jump">跳过</string>
+    <string name="goto_battery">关闭JumpAd电池优化,否则权限可能被系统回收</string>
 </resources>

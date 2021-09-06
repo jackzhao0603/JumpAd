@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import com.jackzhao.adjump.accessibilityhandler.impl.OpenScreenAdHandler
 import com.jackzhao.adjump.service.JumpAdService
+import com.jackzhao.appmanager.AppManager
 import com.jackzhao.appmanager.PermissionManager
 
 object AdJumpManager {
@@ -12,7 +13,7 @@ object AdJumpManager {
     var mIsEnable = false
 
 
-    fun init(context: Context){
+    fun init(context: Context) {
         JumpAdService.addAccessibilityHandler(OpenScreenAdHandler(context))
     }
 
@@ -39,5 +40,9 @@ object AdJumpManager {
             return false
         }
         return mIsEnable
+    }
+
+    fun gotoBatteryConfig(activity: Activity) {
+        PermissionManager.gotoBatteryOptimization(activity)
     }
 }
