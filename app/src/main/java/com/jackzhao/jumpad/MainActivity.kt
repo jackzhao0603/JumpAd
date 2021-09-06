@@ -29,7 +29,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AdJumpManager.init(baseContext)
         setContent {
             isAdJumpEnable = remember { mutableStateOf(AdJumpManager.isEnable(this)) }
             JumpAdTheme {

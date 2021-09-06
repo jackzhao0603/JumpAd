@@ -1,14 +1,21 @@
 package com.jackzhao.adjump.accessibilityhandler
 
+import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.GestureDescription
+import android.graphics.Path
 import android.graphics.Rect
+import android.os.Build
+import android.os.Handler
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.annotation.RequiresApi
 import java.lang.Exception
 
-abstract class AccessibilityHandler {
+abstract class AccessibilityHandler(service: AccessibilityService) {
     data class Point(var x: Int, var y: Int)
 
+    val accessibilityService = service
     private val TAG = "AccessibilityHandler"
     var screenHeight = 0
     var screenWidth = 0
@@ -45,31 +52,43 @@ abstract class AccessibilityHandler {
     }
 
     fun tryToClickPoint(rootNodeInfo: AccessibilityNodeInfo, point: Point) {
-        for (i in 0 until rootNodeInfo.childCount) {
-            try {
-                val child = rootNodeInfo.getChild(i) ?: continue
-                if (child.isClickable) {
-                    var rect = Rect()
-                    child.getBoundsInScreen(rect)
-//                    if (
-//                        screenHeight - rect.bottom < 300 &&
-//                        rect.right - rect.left > 0 &&
-//                        rect.right - rect.left < screenWidth / 6
-//                    ) {
-//                        Log.e(TAG, "tryToClickPoint: $rect")
-//                        clickNode(child)
-//                    } else {
-//                        tryToClickPoint(child, point)
-//                    }
-                    Log.e(TAG, "tryToClickPoint: " + child.text)
-                    tryToClickPoint(child, point)
-                } else {
-                    tryToClickPoint(child, point)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            clickOnScreen(accessibilityService,
+                point.x.toFloat(),
+                point.y.toFloat(),
+                object : AccessibilityService.GestureResultCallback() {
+
                 }
-            } catch (e: Exception) {
-                Log.w(TAG, "tryToClickPoint: ", e)
-            }
+            )
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun clickOnScreen(
+        service: AccessibilityService,
+        x: Float,
+        y: Float,
+        callback: AccessibilityService.GestureResultCallback,
+        handler: Handler? = null
+    ) {
+        val p = Path()
+        p.moveTo(x, y)
+        gestureOnScreen(service, p, callback = callback, handler = handler)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun gestureOnScreen(
+        service: AccessibilityService,
+        path: Path,
+        startTime: Long = 0,
+        duration: Long = 100,
+        callback: AccessibilityService.GestureResultCallback,
+        handler: Handler? = null
+    ) {
+        val builder = GestureDescription.Builder()
+        builder.addStroke(GestureDescription.StrokeDescription(path, startTime, duration))
+        val gesture = builder.build()
+        service.dispatchGesture(gesture, callback, handler)
     }
 
 }

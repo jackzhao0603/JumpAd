@@ -1,7 +1,8 @@
 package com.jackzhao.adjump.accessibilityhandler.impl
 
-import android.content.Context
+import android.accessibilityservice.AccessibilityService
 import android.graphics.Rect
+import android.os.Looper
 import android.text.TextUtils
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -9,17 +10,20 @@ import android.view.accessibility.AccessibilityNodeInfo
 import com.jackzhao.adjump.R
 import com.jackzhao.adjump.accessibilityhandler.AccessibilityHandler
 import com.jackzhao.appmanager.AppManager
+import com.jackzhao.appmanager.utils.VersionUtils
+import java.util.*
+import java.util.logging.Handler
 
-class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
+class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(service) {
 
 
     private val TAG = "OpenScreenAdHandler"
     private var type = 0
     private var luncherAppPkg = ""
     private var targetActivity = ""
-    private val jumpStr = context.getString(R.string.jump)
+    private val jumpStr = service.getString(R.string.jump)
     private var jumpRect: Rect? = null
-
+    private val quene = LinkedList<AccessibilityNodeInfo>()
     private val keyList = listOf(
         "splash",
         "loading",
@@ -27,10 +31,13 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
     )
 
     init {
-        luncherAppPkg = AppManager.getLauncherPackageName(context)
+        luncherAppPkg = AppManager.getLauncherPackageName(service)
     }
 
     override fun needToHandleEvent(event: AccessibilityEvent): Boolean {
+        if (jumpRect != null) {
+            return false
+        }
         targetActivity = getActivityName(event) ?: targetActivity
         if (event.isScrollable) {
             return false
@@ -45,20 +52,66 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
         val rootNodeInfo = event.source
         type = event.eventType
         rootNodeInfo?.let {
-            extractString(rootNodeInfo)
-            jumpRect?.let {
-                val point = Point(
-                    (it.left + it.right) / 2,
-                    (it.top + it.bottom) / 2
-                )
-                jumpRect = null
-                tryToClickPoint(rootNodeInfo, point)
+            if (VersionUtils.isAndroidN()) {
+                extractJumpForN(rootNodeInfo)
+                jumpRect?.let {
+                    val point = Point(
+                        (it.left + it.right) / 2,
+                        (it.top + it.bottom) / 2
+                    )
+                    tryToClickPoint(rootNodeInfo, point)
+                    android.os.Handler().postDelayed({ jumpRect = null }, 1000)
+                }
+            } else {
+                extractJump(rootNodeInfo)
+            }
+
+        }
+    }
+
+    private fun extractJumpForN(rootNodeInfo: AccessibilityNodeInfo) {
+        quene.offer(rootNodeInfo)
+        while (!quene.isEmpty()) {
+            var root: AccessibilityNodeInfo? = null
+            try {
+                val root = quene.poll() ?: continue
+                for (i in 0 until root.childCount) {
+                    quene.offer(root.getChild(i))
+                }
+                if (root.isClickable && "android.view.View" == root.className) {
+                    for (key in keyList) {
+                        if (targetActivity.lowercase().contains(key)) {
+                            var rect = Rect()
+                            root.getBoundsInScreen(rect)
+                            val width = rect.right - rect.left
+                            if (width < screenWidth / 8) {
+                                if (screenWidth - rect.right < screenWidth / 16) {
+                                    clickNode(root)
+                                }
+                                if (rect.left < screenWidth / 16) {
+                                    clickNode(root)
+                                }
+                            }
+                        }
+                    }
+                }
+                if (root.isEnabled && root.isVisibleToUser && !TextUtils.isEmpty(root.text)) {
+                    val str = root.text.toString()
+                    if (str.contains(jumpStr)) {
+                        jumpRect = Rect()
+                        root.getBoundsInScreen(jumpRect)
+                        return
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "extractJumpForN: ", e)
+            } finally {
+                tryRecycle(root)
             }
         }
     }
 
-
-    private fun extractString(rootNodeInfo: AccessibilityNodeInfo) {
+    private fun extractJump(rootNodeInfo: AccessibilityNodeInfo) {
         try {
             if (rootNodeInfo != null) {
                 for (i in 0 until rootNodeInfo.childCount) {
@@ -105,9 +158,7 @@ class OpenScreenAdHandler(context: Context) : AccessibilityHandler() {
                                 }
                             }
                         }
-                        extractString(child)
-                    } catch (e: ArrayIndexOutOfBoundsException) {
-                    } catch (e: IllegalStateException) {
+                        extractJump(child)
                     } catch (e: Exception) {
                     } finally {
                         tryRecycle(child)

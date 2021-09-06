@@ -12,6 +12,7 @@ class JumpAdService : AccessibilityService() {
     companion object {
         var jumpAdService: JumpAdService? = null
         private val accessibilityHandlers = HashSet<AccessibilityHandler>()
+        var lastHandleTime = 0L
 
         fun isStart(): Boolean {
             return jumpAdService != null
@@ -27,6 +28,7 @@ class JumpAdService : AccessibilityService() {
             return
         }
         event?.let { event ->
+            Log.e(TAG, "onAccessibilityEvent: " + event.eventType)
             when (event.eventType) {
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
@@ -42,6 +44,7 @@ class JumpAdService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
+        AdJumpManager.init(this)
         jumpAdService = this;
     }
 
