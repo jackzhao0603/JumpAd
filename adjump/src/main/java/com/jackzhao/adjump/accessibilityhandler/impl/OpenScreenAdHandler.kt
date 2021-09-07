@@ -95,7 +95,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                 }
                 if (root.isEnabled && root.isVisibleToUser && !TextUtils.isEmpty(root.text)) {
                     val str = root.text.toString()
-                    if (str.contains(jumpStr)) {
+                    if (str.trim().startsWith(jumpStr) || str.trim().endsWith(jumpStr)) {
                         if (root.isClickable) {
                             clickNode(root)
                         } else {
