@@ -18,15 +18,15 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
     private val TAG = "OpenScreenAdHandler"
     private var type = 0
     private var luncherAppPkg = ""
-    private var targetActivity = ""
+
     private val jumpStrs = service.resources.getStringArray(R.array.jump_key_words)
     private var jumpRect: Rect? = null
     private val quene = LinkedList<AccessibilityNodeInfo>()
-    private val keyList = listOf(
-        "splash",
-        "loading",
-        "login"
-    )
+
+    private var lastApp = ""
+    private var lastActivity = ""
+    private var nowActivity = ""
+    private var nowApp = ""
 
     init {
         luncherAppPkg = AppManager.getLauncherPackageName(service)
@@ -36,15 +36,26 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         if (jumpRect != null) {
             return false
         }
-        targetActivity = getActivityName(event) ?: targetActivity
-        Log.e(TAG, "needToHandleEvent: $targetActivity")
         if (event.isScrollable) {
             return false
         }
-        if (event.packageName.equals(luncherAppPkg)) {
-            return false
+        var result = false
+        if (lastApp == luncherAppPkg) {
+            result = true
         }
-        return true
+
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            if (event.packageName.contains(".")) {
+                nowActivity = getActivityName(event) ?: nowActivity
+                if (nowActivity != lastActivity) {
+                    lastApp = nowApp
+                    nowApp = event.packageName as String
+                    lastActivity = nowActivity
+                }
+            }
+        }
+
+        return result
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -78,19 +89,16 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                     quene.offer(root.getChild(i))
                 }
                 if (root.isClickable && "android.view.View" == root.className) {
-                    for (key in keyList) {
-                        if (targetActivity.lowercase().contains(key)) {
-                            var rect = Rect()
-                            root.getBoundsInScreen(rect)
-                            val width = rect.right - rect.left
-                            if (width < screenWidth / 8) {
-                                if (screenWidth - rect.right < screenWidth / 16) {
-                                    clickNode(root)
-                                }
-                                if (rect.left < screenWidth / 16) {
-                                    clickNode(root)
-                                }
-                            }
+                    var rect = Rect()
+                    root.getBoundsInScreen(rect)
+                    val width = rect.right - rect.left
+                    Log.e(TAG, "extractJumpForN: $rect --> $width")
+                    if (width < screenWidth / 8) {
+                        if (screenWidth - rect.right < screenWidth / 16) {
+                            clickNode(root)
+                        }
+                        if (rect.left < screenWidth / 16) {
+                            clickNode(root)
                         }
                     }
                 }
@@ -98,7 +106,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                     val str = root.text.toString()
                     for (jumpStr in jumpStrs) {
                         val tmp = str.replace(" ", "")
-                        if (tmp.length < 5) {
+                        if (tmp.length <= 5) {
                             if (tmp.startsWith(jumpStr) || tmp.endsWith(jumpStr)) {
                                 if (root.isClickable) {
                                     clickNode(root)
@@ -129,18 +137,14 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         child = rootNodeInfo.getChild(i) ?: continue
                         var rect = Rect()
                         if (child.isClickable && "android.view.View" == child.className) {
-                            for (key in keyList) {
-                                if (targetActivity.lowercase().contains(key)) {
-                                    child.getBoundsInScreen(rect)
-                                    val width = rect.right - rect.left
-                                    if (width < screenWidth / 8) {
-                                        if (screenWidth - rect.right < screenWidth / 16) {
-                                            clickNode(child)
-                                        }
-                                        if (rect.left < screenWidth / 16) {
-                                            clickNode(child)
-                                        }
-                                    }
+                            child.getBoundsInScreen(rect)
+                            val width = rect.right - rect.left
+                            if (width < screenWidth / 8) {
+                                if (screenWidth - rect.right < screenWidth / 16) {
+                                    clickNode(child)
+                                }
+                                if (rect.left < screenWidth / 16) {
+                                    clickNode(child)
                                 }
                             }
                         }

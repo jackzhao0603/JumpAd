@@ -2,6 +2,8 @@
 <resources>
     <string-array name="jump_key_words">
         <item>跳过</item>
+        <item>跳过广告</item>
         <item>关闭</item>
+        <item>关闭广告</item>
     </string-array>
 </resources>
