@@ -3,7 +3,6 @@ package com.jackzhao.adjump.accessibilityhandler
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.graphics.Path
-import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
 import android.util.Log
@@ -26,21 +25,8 @@ abstract class AccessibilityHandler(service: AccessibilityService) {
         var tmp: CharSequence? = event.className ?: return null
         var name = tmp as String
 
-        var packages = event.packageName as String
-        if (name.contains("com.")) {
-            if (name.contains(packages)) {
-                name = name.replace(packages, "")
-                name = name.replace("..", "");
-                if (name[0] == '.')
-                    name = name.substring(1);
-                if (screenHeight == 0 && event.source != null) {
-                    val rect = Rect()
-                    event.source.getBoundsInScreen(rect)
-                    screenHeight = rect.height()
-                    screenWidth = rect.width()
-                }
-                return name
-            }
+        if (name.contains("Activity")) {
+            return name
         }
         return null
     }

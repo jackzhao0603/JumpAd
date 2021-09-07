@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="jump_key_words">
+        <item>跳过</item>
+        <item>关闭</item>
+    </string-array>
+</resources>

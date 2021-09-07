@@ -19,7 +19,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
     private var type = 0
     private var luncherAppPkg = ""
     private var targetActivity = ""
-    private val jumpStr = service.getString(R.string.jump)
+    private val jumpStrs = service.resources.getStringArray(R.array.jump_key_words)
     private var jumpRect: Rect? = null
     private val quene = LinkedList<AccessibilityNodeInfo>()
     private val keyList = listOf(
@@ -37,6 +37,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
             return false
         }
         targetActivity = getActivityName(event) ?: targetActivity
+        Log.e(TAG, "needToHandleEvent: $targetActivity")
         if (event.isScrollable) {
             return false
         }
@@ -95,14 +96,20 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                 }
                 if (root.isEnabled && root.isVisibleToUser && !TextUtils.isEmpty(root.text)) {
                     val str = root.text.toString()
-                    if (str.trim().startsWith(jumpStr) || str.trim().endsWith(jumpStr)) {
-                        if (root.isClickable) {
-                            clickNode(root)
-                        } else {
-                            jumpRect = Rect()
-                            root.getBoundsInScreen(jumpRect)
+                    for (jumpStr in jumpStrs) {
+                        val tmp = str.replace(" ", "")
+                        if (tmp.length < 5) {
+                            if (tmp.startsWith(jumpStr) || tmp.endsWith(jumpStr)) {
+                                if (root.isClickable) {
+                                    clickNode(root)
+                                } else {
+                                    jumpRect = Rect()
+                                    root.getBoundsInScreen(jumpRect)
+                                }
+                                Log.e(TAG, "extractJumpForN: $str")
+                                return
+                            }
                         }
-                        return
                     }
                 }
             } catch (e: Exception) {
@@ -139,24 +146,28 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         }
                         if (child.isEnabled && child.isVisibleToUser && !TextUtils.isEmpty(child.text)) {
                             val str = child.text.toString()
-                            if (str.contains(jumpStr)) {
-                                child.getBoundsInScreen(rect)
-                                if (child.isClickable) {
-                                    clickNode(child)
-                                } else {
-                                    try {
-                                        tryToClickParent(child)
-                                    } catch (e: Exception) {
-                                        Log.w(TAG, "extractString: ", e)
-                                    }
+                            for (jumpStr in jumpStrs) {
+                                if (str.trim().startsWith(jumpStr) ||
+                                    str.trim().endsWith(jumpStr)
+                                ) {
+                                    child.getBoundsInScreen(rect)
+                                    if (child.isClickable) {
+                                        clickNode(child)
+                                    } else {
+                                        try {
+                                            tryToClickParent(child)
+                                        } catch (e: Exception) {
+                                            Log.w(TAG, "extractString: ", e)
+                                        }
 
-                                    try {
-                                        tryToClickChild(child)
-                                    } catch (e: Exception) {
-                                        Log.w(TAG, "extractString: ", e)
+                                        try {
+                                            tryToClickChild(child)
+                                        } catch (e: Exception) {
+                                            Log.w(TAG, "extractString: ", e)
+                                        }
+                                        jumpRect = Rect()
+                                        child.getBoundsInScreen(jumpRect)
                                     }
-                                    jumpRect = Rect()
-                                    child.getBoundsInScreen(jumpRect)
                                 }
                             }
                         }
