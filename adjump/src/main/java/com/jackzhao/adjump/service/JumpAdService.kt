@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.jackzhao.adjump.AdJumpManager
 import com.jackzhao.adjump.accessibilityhandler.AccessibilityHandler
+import com.jackzhao.adjump.config.Config
 
 class JumpAdService : AccessibilityService() {
     private val TAG = "JumpAdService"
@@ -24,7 +25,7 @@ class JumpAdService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (!AdJumpManager.mIsEnable) {
+        if (Config.IS_JUMP_ENABLE.getBoolean(baseContext) == false) {
             return
         }
         event?.let { event ->

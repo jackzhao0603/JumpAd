@@ -93,20 +93,24 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                 for (i in 0 until root.childCount) {
                     quene.offer(root.getChild(i))
                 }
-//                if (root.isClickable && "android.view.View" == root.className) {
-//                    var rect = Rect()
-//                    root.getBoundsInScreen(rect)
-//                    val width = rect.right - rect.left
-//                    Log.e(TAG, "extractJumpForN: $rect --> $width")
-//                    if (width < screenWidth / 20) {
-//                        if (screenWidth - rect.right < screenWidth / 16) {
-//                            clickNode(root)
-//                        }
-//                        if (rect.left < screenWidth / 16) {
-//                            clickNode(root)
-//                        }
-//                    }
-//                }
+                if (root.isClickable && "android.view.View" == root.className) {
+                    var rect = Rect()
+                    root.getBoundsInScreen(rect)
+                    val width = rect.right - rect.left
+                    val height = rect.bottom - rect.top
+                    Log.e(
+                        TAG, "extractJumpForN: $rect --> $width --> " +
+                                "$height --> ${(rect.right + rect.left) / 2}"
+                    )
+                    if (width < screenWidth / 10) {
+                        if (screenWidth - rect.right < screenWidth / 20) {
+                            clickNode(root)
+                        }
+                        if (rect.left < screenWidth / 20) {
+                            clickNode(root)
+                        }
+                    }
+                }
                 if (root.isEnabled && root.isVisibleToUser && !TextUtils.isEmpty(root.text)) {
                     val str = root.text.toString()
                     for (jumpStr in jumpStrs) {
@@ -147,7 +151,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         if (child.isClickable && "android.view.View" == child.className) {
                             child.getBoundsInScreen(rect)
                             val width = rect.right - rect.left
-                            if (width < screenWidth / 8) {
+                            if (width < screenWidth / 10) {
                                 if (screenWidth - rect.right < screenWidth / 16) {
                                     clickNode(child)
                                 }

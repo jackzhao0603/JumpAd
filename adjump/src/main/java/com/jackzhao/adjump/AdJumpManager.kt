@@ -4,24 +4,24 @@ import android.accessibilityservice.AccessibilityService
 import android.app.Activity
 import android.content.Context
 import com.jackzhao.adjump.accessibilityhandler.impl.OpenScreenAdHandler
+import com.jackzhao.adjump.config.Config
 import com.jackzhao.adjump.service.JumpAdService
 import com.jackzhao.appmanager.PermissionManager
 
 object AdJumpManager {
     private const val TAG = "AdJumpManager"
-    var mIsEnable = false
-
 
     fun init(accessibilityService: AccessibilityService) {
         JumpAdService.addAccessibilityHandler(OpenScreenAdHandler(accessibilityService))
     }
 
     fun isAdJumpPermissionGranted(context: Context): Boolean {
-        mIsEnable = PermissionManager.checkSelfAccessbility(context)
-        return mIsEnable
+        val result = PermissionManager.checkSelfAccessbility(context)
+        Config.IS_JUMP_ENABLE[context] = result and (Config.IS_JUMP_ENABLE[context] == true)
+        return result
     }
 
-    fun gotoAccessiblityConfig(activity: Activity) {
+    private fun gotoAccessiblityConfig(activity: Activity) {
         PermissionManager.gotoAccessibilitySettings(activity)
     }
 
@@ -29,16 +29,16 @@ object AdJumpManager {
         if (isEnable && !isAdJumpPermissionGranted(activity)) {
             gotoAccessiblityConfig(activity)
         } else {
-            mIsEnable = isEnable
+            Config.IS_JUMP_ENABLE[activity] = isEnable
         }
-        return mIsEnable
+        return Config.IS_JUMP_ENABLE.getBoolean(activity) == true
     }
 
     fun isEnable(activity: Activity): Boolean {
         if (!isAdJumpPermissionGranted(activity)) {
             return false
         }
-        return mIsEnable
+        return Config.IS_JUMP_ENABLE.getBoolean(activity) == true
     }
 
     fun gotoBatteryConfig(activity: Activity) {
