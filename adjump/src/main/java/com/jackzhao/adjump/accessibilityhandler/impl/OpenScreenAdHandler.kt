@@ -54,6 +54,9 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         if (AppManager.isSystemApp(context, nowApp)) {
             return false
         }
+        if (AppManager.isSystemApp(context, event.packageName.toString())) {
+            return false
+        }
         if (ignorePkgs.contains(nowApp)) {
             return false
         }
@@ -64,8 +67,8 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         val rootNodeInfo = event.source
         rootNodeInfo?.let {
             if (VersionUtils.isAndroidN()) {
-                extractJumpForN(rootNodeInfo)
                 quene.clear()
+                extractJumpForN(rootNodeInfo)
                 jumpRect?.let {
                     val point = Point(
                         (it.left + it.right) / 2,
@@ -116,7 +119,10 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                                     jumpRect = Rect()
                                     root.getBoundsInScreen(jumpRect)
                                 }
-                                Log.e(TAG, "extractJumpForN: $str")
+                                Log.i(
+                                    TAG,
+                                    "extractJumpForN: $str --> $nowApp  --> $nowActivity -- $root"
+                                )
                                 return
                             }
                         }
