@@ -16,8 +16,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
 
 
     private val TAG = "OpenScreenAdHandler"
-    private var type = 0
-    private var luncherAppPkg = ""
+    private var luncherAppPkg = AppManager.getLauncherPackageName(service)
 
     private val jumpStrs = service.resources.getStringArray(R.array.jump_key_words)
     private val ignorePkgs = service.resources.getStringArray(R.array.ignore_pkgs)
@@ -29,10 +28,6 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
     private var nowActivity = ""
     private var nowApp = ""
     private val context = service.baseContext
-
-    init {
-        luncherAppPkg = AppManager.getLauncherPackageName(service)
-    }
 
     override fun needToHandleEvent(event: AccessibilityEvent): Boolean {
         var result = false
@@ -67,7 +62,6 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val rootNodeInfo = event.source
-        type = event.eventType
         rootNodeInfo?.let {
             if (VersionUtils.isAndroidN()) {
                 extractJumpForN(rootNodeInfo)
@@ -122,6 +116,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                                     root.getBoundsInScreen(jumpRect)
                                 }
                                 Log.e(TAG, "extractJumpForN: $str")
+                                quene.clear()
                                 return
                             }
                         }
