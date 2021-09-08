@@ -105,12 +105,16 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         if (screenWidth - rect.right < screenWidth / 20) {
                             clickNode(root)
                         }
-                        if (rect.left < screenWidth / 20) {
-                            clickNode(root)
-                        }
+//                        if (rect.left < screenWidth / 20) {
+//                            clickNode(root)
+//                        }
                     }
                 }
-                if (root.isEnabled && root.isVisibleToUser && !TextUtils.isEmpty(root.text)) {
+                if (root.isEnabled &&
+                    root.isVisibleToUser &&
+                    !root.className.toString().lowercase().contains("switch") &&
+                    !TextUtils.isEmpty(root.text)
+                ) {
                     val str = root.text.toString()
                     for (jumpStr in jumpStrs) {
                         val tmp = str.replace(" ", "")
@@ -159,7 +163,11 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                                 }
                             }
                         }
-                        if (child.isEnabled && child.isVisibleToUser && !TextUtils.isEmpty(child.text)) {
+                        if (child.isEnabled &&
+                            child.isVisibleToUser &&
+                            !child.className.toString().lowercase().contains("switch") &&
+                            !TextUtils.isEmpty(child.text)
+                        ) {
                             val str = child.text.toString()
                             for (jumpStr in jumpStrs) {
                                 if (str.trim().startsWith(jumpStr) ||
