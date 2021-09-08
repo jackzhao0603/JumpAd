@@ -74,13 +74,12 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         (it.left + it.right) / 2,
                         (it.top + it.bottom) / 2
                     )
-                    tryToClickPoint(rootNodeInfo, point)
+                    tryToClickPoint(point)
                     android.os.Handler().postDelayed({ jumpRect = null }, 1000)
                 }
             } else {
                 extractJump(rootNodeInfo)
             }
-
         }
     }
 

@@ -14,7 +14,7 @@ import androidx.annotation.RequiresApi
 abstract class AccessibilityHandler(service: AccessibilityService) {
     data class Point(var x: Int, var y: Int)
 
-    val accessibilityService = service
+    private val accessibilityService = service
     private val TAG = "AccessibilityHandler"
     var screenHeight = 0
     var screenWidth = 0
@@ -43,7 +43,7 @@ abstract class AccessibilityHandler(service: AccessibilityService) {
         node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
     }
 
-    fun tryToClickPoint(rootNodeInfo: AccessibilityNodeInfo, point: Point) {
+    fun tryToClickPoint(point: Point) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             clickOnScreen(accessibilityService,
                 point.x.toFloat(),
@@ -100,9 +100,7 @@ abstract class AccessibilityHandler(service: AccessibilityService) {
         }
     }
 
-    fun tryToClickParent(
-        rootNodeInfo: AccessibilityNodeInfo
-    ) {
+    fun tryToClickParent(rootNodeInfo: AccessibilityNodeInfo) {
         var node = rootNodeInfo.parent
         while (!node.isClickable) {
             node = node.parent
