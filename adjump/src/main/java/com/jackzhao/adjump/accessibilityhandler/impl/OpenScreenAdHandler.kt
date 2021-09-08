@@ -65,6 +65,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         rootNodeInfo?.let {
             if (VersionUtils.isAndroidN()) {
                 extractJumpForN(rootNodeInfo)
+                quene.clear()
                 jumpRect?.let {
                     val point = Point(
                         (it.left + it.right) / 2,
@@ -116,7 +117,6 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                                     root.getBoundsInScreen(jumpRect)
                                 }
                                 Log.e(TAG, "extractJumpForN: $str")
-                                quene.clear()
                                 return
                             }
                         }
