@@ -20,6 +20,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
     private var luncherAppPkg = ""
 
     private val jumpStrs = service.resources.getStringArray(R.array.jump_key_words)
+    private val ignorePkgs = service.resources.getStringArray(R.array.ignore_pkgs)
     private var jumpRect: Rect? = null
     private val quene = LinkedList<AccessibilityNodeInfo>()
 
@@ -27,18 +28,13 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
     private var lastActivity = ""
     private var nowActivity = ""
     private var nowApp = ""
+    private val context = service.baseContext
 
     init {
         luncherAppPkg = AppManager.getLauncherPackageName(service)
     }
 
     override fun needToHandleEvent(event: AccessibilityEvent): Boolean {
-        if (jumpRect != null) {
-            return false
-        }
-        if (event.isScrollable) {
-            return false
-        }
         var result = false
         if (lastApp == luncherAppPkg) {
             result = true
@@ -54,7 +50,18 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                 }
             }
         }
-
+        if (jumpRect != null) {
+            return false
+        }
+        if (event.isScrollable) {
+            return false
+        }
+        if (AppManager.isSystemApp(context, nowApp)) {
+            return false
+        }
+        if (ignorePkgs.contains(nowApp)) {
+            return false
+        }
         return result
     }
 
@@ -88,20 +95,20 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                 for (i in 0 until root.childCount) {
                     quene.offer(root.getChild(i))
                 }
-                if (root.isClickable && "android.view.View" == root.className) {
-                    var rect = Rect()
-                    root.getBoundsInScreen(rect)
-                    val width = rect.right - rect.left
-                    Log.e(TAG, "extractJumpForN: $rect --> $width")
-                    if (width < screenWidth / 8) {
-                        if (screenWidth - rect.right < screenWidth / 16) {
-                            clickNode(root)
-                        }
-                        if (rect.left < screenWidth / 16) {
-                            clickNode(root)
-                        }
-                    }
-                }
+//                if (root.isClickable && "android.view.View" == root.className) {
+//                    var rect = Rect()
+//                    root.getBoundsInScreen(rect)
+//                    val width = rect.right - rect.left
+//                    Log.e(TAG, "extractJumpForN: $rect --> $width")
+//                    if (width < screenWidth / 20) {
+//                        if (screenWidth - rect.right < screenWidth / 16) {
+//                            clickNode(root)
+//                        }
+//                        if (rect.left < screenWidth / 16) {
+//                            clickNode(root)
+//                        }
+//                    }
+//                }
                 if (root.isEnabled && root.isVisibleToUser && !TextUtils.isEmpty(root.text)) {
                     val str = root.text.toString()
                     for (jumpStr in jumpStrs) {

@@ -6,4 +6,10 @@
         <item>关闭</item>
         <item>关闭广告</item>
     </string-array>
+
+    <string-array name="ignore_pkgs">
+        <item>com.eg.android.AlipayGphone</item>
+        <item>com.tencent.mm</item>
+        <item>com.tencent.mobileqq</item>
+    </string-array>
 </resources>
