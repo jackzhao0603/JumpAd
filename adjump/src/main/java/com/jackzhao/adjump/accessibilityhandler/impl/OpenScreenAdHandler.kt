@@ -9,7 +9,6 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.jackzhao.adjump.R
 import com.jackzhao.adjump.accessibilityhandler.AccessibilityHandler
-import com.jackzhao.adjump.utils.Utils
 import com.jackzhao.appmanager.AppManager
 import com.jackzhao.appmanager.utils.VersionUtils
 import java.util.*
@@ -75,7 +74,9 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         if (event.isScrollable) {
             result = false
         }
-        if (AppManager.isSystemApp(context, nowApp) && nowApp != Utils.getMarketApp(context)) {
+        if (AppManager.isSystemApp(context, nowApp) &&
+            !AppManager.getMarketApps(context).contains(nowApp)
+        ) {
             result = false
         }
         if (AppManager.isSystemApp(context, event.packageName.toString())) {
