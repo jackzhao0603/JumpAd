@@ -25,7 +25,7 @@ class JumpAdService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (Config.IS_JUMP_ENABLE.getBoolean(baseContext) == false) {
+        if (!Config.IS_JUMP_ENABLE.getBoolean(baseContext)) {
             return
         }
         event?.let { event ->

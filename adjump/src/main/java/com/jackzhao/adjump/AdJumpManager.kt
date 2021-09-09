@@ -31,14 +31,14 @@ object AdJumpManager {
         } else {
             Config.IS_JUMP_ENABLE[activity] = isEnable
         }
-        return Config.IS_JUMP_ENABLE.getBoolean(activity) == true
+        return Config.IS_JUMP_ENABLE.getBoolean(activity)
     }
 
     fun isEnable(activity: Activity): Boolean {
         if (!isAdJumpPermissionGranted(activity)) {
             return false
         }
-        return Config.IS_JUMP_ENABLE.getBoolean(activity) == true
+        return Config.IS_JUMP_ENABLE.getBoolean(activity)
     }
 
     fun gotoBatteryConfig(activity: Activity) {
