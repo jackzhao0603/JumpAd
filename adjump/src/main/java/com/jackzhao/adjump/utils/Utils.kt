@@ -1,37 +1,25 @@
 package com.jackzhao.adjump.utils
 
 import android.content.Context
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import android.content.Intent
+import android.content.pm.PackageManager
+
 
 object Utils {
-    fun getLunchActivityName(context: Context, packageName: String?): String? {
-        var pi: PackageInfo? = null
-        pi = try {
-            context.applicationContext.packageManager.getPackageInfo(packageName!!, 0)
-        } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
-            return null
+    fun getMarketApp(context: Context): String? {
+        val intent = Intent()
+        intent.action = "android.intent.action.MAIN"
+        intent.addCategory("android.intent.category.APP_MARKET")
+        val pm: PackageManager = context.packageManager
+        val infos = pm.queryIntentActivities(intent, 0)
+        val size = infos.size
+        for (i in 0 until size) {
+            val activityInfo = infos[i].activityInfo
+            val packageName = activityInfo.packageName
+            return packageName
         }
-        val resolveIntent = Intent(Intent.ACTION_MAIN, null)
-        resolveIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-        resolveIntent.setPackage(pi!!.packageName)
-        val pManager = context.applicationContext.packageManager
-        val apps = pManager.queryIntentActivities(
-            resolveIntent,
-            0
-        )
-        try {
-            val ri = apps.iterator().next()
-            if (ri != null) {
-                val startappName = ri.activityInfo.packageName
-                return ri.activityInfo.name
-            }
-        } catch (e: Exception) {
-            return null
-        }
-
         return null
     }
+
+
 }
