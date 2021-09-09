@@ -116,12 +116,12 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                     lastJumpTime = System.currentTimeMillis()
                     tryToClickPoint(point)
 
-                    for (i in 0 until 2) {
+                    for (i in 0 until 1) {
                         Handler().postDelayed({
                             if (jumpPageHash == nowPageHash) {
                                 tryToClickPoint(point)
                             }
-                        }, i * 300L + 1000)
+                        }, i * 400L + 800)
                     }
                 }
             } else {
