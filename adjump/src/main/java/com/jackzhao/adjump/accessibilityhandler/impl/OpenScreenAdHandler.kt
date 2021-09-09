@@ -46,6 +46,8 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
             return false
         }
         nowPageHash = event.source.hashCode()
+        Log.e(TAG, "needToHandleEvent: $rect --> $nowPageHash")
+
         val nowTime = System.currentTimeMillis()
         var result = false
         if (lastApp.isEmpty()) {
@@ -114,12 +116,15 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                     jumpRect = null
                     lastJumpTime = System.currentTimeMillis()
                     tryToClickPoint(point)
-                    Handler().postDelayed({
-                        Log.e(TAG, "onAccessibilityEvent: $jumpPageHash --> $nowPageHash")
-                        if (jumpPageHash == nowPageHash) {
-                            tryToClickPoint(point)
-                        }
-                    }, 600)
+
+                    for (i in 0 until 2) {
+                        Handler().postDelayed({
+                            Log.e(TAG, "onAccessibilityEvent: $jumpPageHash --> $nowPageHash")
+                            if (jumpPageHash == nowPageHash) {
+                                tryToClickPoint(point)
+                            }
+                        }, i * 300L + 1000)
+                    }
                 }
             } else {
                 extractJump(rootNodeInfo)
