@@ -26,7 +26,7 @@ abstract class AccessibilityHandler(service: AccessibilityService) {
         var tmp: CharSequence? = event.className ?: return null
         var name = tmp as String
 
-        if (!name.startsWith("android.")) {
+        if (!name.startsWith("android.") && !name.startsWith("androidx.")) {
             if (screenHeight == 0 && event.source != null) {
                 val rect = Rect()
                 event.source.getBoundsInScreen(rect)

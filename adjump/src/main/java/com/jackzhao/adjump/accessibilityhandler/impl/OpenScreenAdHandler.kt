@@ -27,23 +27,29 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
     private var lastActivity = ""
     private var nowActivity = ""
     private var nowApp = ""
+    private var nowActivityShowTime = 0L
+    private var lastJumpTime = 0L
     private val context = service.baseContext
 
     override fun needToHandleEvent(event: AccessibilityEvent): Boolean {
+        val nowTime = System.currentTimeMillis()
         var result = false
+        if (lastApp.isEmpty()) {
+            lastApp = event.packageName.toString()
+        }
         if (lastApp == luncherAppPkg) {
             result = true
         }
 
-        Log.i(TAG, "needToHandleEvent: $lastApp")
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            if (event.packageName.contains(".")) {
-                nowActivity = getActivityName(event) ?: nowActivity
-                if (nowActivity != lastActivity) {
-                    lastActivity = nowActivity
-                }
+        if (event.packageName.contains(".")) {
+            val tmpActivity = getActivityName(event) ?: nowActivity
+            if (nowActivity != tmpActivity) {
+                lastActivity = nowActivity
+                nowActivity = tmpActivity
                 lastApp = nowApp
                 nowApp = event.packageName as String
+                nowActivityShowTime = nowTime
+                Log.v(TAG, "needToHandleEvent: $lastApp/$lastActivity  --> $nowApp/$nowActivity")
             }
         }
         if (jumpRect != null) {
@@ -59,6 +65,12 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
             return false
         }
         if (ignorePkgs.contains(nowApp)) {
+            return false
+        }
+        if (nowTime - nowActivityShowTime > 5000) {
+            return false
+        }
+        if (nowTime - lastJumpTime < 3000) {
             return false
         }
         return result
@@ -78,7 +90,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                     android.os.Handler().postDelayed({
                         tryToClickPoint(point)
                         jumpRect = null
-                    }, 50)
+                    }, 0)
                 }
             } else {
                 extractJump(rootNodeInfo)
@@ -104,7 +116,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         TAG, "extractJumpForN: $rect --> $width --> " +
                                 "$height --> ${(rect.right + rect.left) / 2}"
                     )
-                    if (width < screenWidth / 10) {
+                    if (width < screenWidth / 10 && width > 20) {
                         if (screenWidth - rect.right < screenWidth / 20) {
                             clickNode(root)
                         }
@@ -129,6 +141,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                                     jumpRect = Rect()
                                     root.getBoundsInScreen(jumpRect)
                                 }
+                                lastJumpTime = System.currentTimeMillis()
                                 Log.i(
                                     TAG,
                                     "extractJumpForN: $str --> $nowApp  --> $nowActivity -- $root"
