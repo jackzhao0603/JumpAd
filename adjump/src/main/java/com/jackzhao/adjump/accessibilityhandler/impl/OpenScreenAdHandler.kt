@@ -2,6 +2,7 @@ package com.jackzhao.adjump.accessibilityhandler.impl
 
 import android.accessibilityservice.AccessibilityService
 import android.graphics.Rect
+import android.os.Handler
 import android.text.TextUtils
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -31,7 +32,19 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
     private var lastJumpTime = 0L
     private val context = service.baseContext
 
+    private var nowPageHash = 0
+    private var jumpPageHash = 0
+
     override fun needToHandleEvent(event: AccessibilityEvent): Boolean {
+        if (event.source == null) {
+            return false
+        }
+        var rect = Rect()
+        event.source.getBoundsInScreen(rect)
+        if (rect.top != 0 && rect.left != 0) {
+            return false
+        }
+        nowPageHash = event.source.hashCode()
         val nowTime = System.currentTimeMillis()
         var result = false
         if (lastApp.isEmpty()) {
@@ -97,8 +110,15 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         (it.left + it.right) / 2,
                         (it.top + it.bottom) / 2
                     )
-                    tryToClickPoint(point)
                     jumpRect = null
+                    lastJumpTime = System.currentTimeMillis()
+                    tryToClickPoint(point)
+                    Handler().postDelayed({
+                        Log.e(TAG, "onAccessibilityEvent: $jumpPageHash --> $nowPageHash")
+                        if (jumpPageHash == nowPageHash) {
+                            tryToClickPoint(point)
+                        }
+                    }, 600)
                 }
             } else {
                 extractJump(rootNodeInfo)
@@ -143,15 +163,13 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         val tmp = str.replace(" ", "")
                         if (tmp.length <= 5) {
                             if (tmp.startsWith(jumpStr) || tmp.endsWith(jumpStr)) {
-                                if (root.isClickable) {
-                                    clickNode(root)
-                                }
                                 jumpRect = Rect()
                                 root.getBoundsInScreen(jumpRect)
+                                jumpPageHash = nowPageHash
                                 lastJumpTime = System.currentTimeMillis()
                                 Log.i(
                                     TAG,
-                                    "extractJumpForN: $str --> $nowApp  --> $nowActivity -- $root"
+                                    "extractJumpForN: $str --> $nowApp  --> $nowActivity"
                                 )
                                 return
                             }
