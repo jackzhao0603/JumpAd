@@ -35,14 +35,15 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
             result = true
         }
 
+        Log.i(TAG, "needToHandleEvent: $lastApp")
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             if (event.packageName.contains(".")) {
                 nowActivity = getActivityName(event) ?: nowActivity
                 if (nowActivity != lastActivity) {
-                    lastApp = nowApp
-                    nowApp = event.packageName as String
                     lastActivity = nowActivity
                 }
+                lastApp = nowApp
+                nowApp = event.packageName as String
             }
         }
         if (jumpRect != null) {
@@ -74,8 +75,10 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         (it.left + it.right) / 2,
                         (it.top + it.bottom) / 2
                     )
-                    tryToClickPoint(point)
-                    android.os.Handler().postDelayed({ jumpRect = null }, 1000)
+                    android.os.Handler().postDelayed({
+                        tryToClickPoint(point)
+                        jumpRect = null
+                    }, 50)
                 }
             } else {
                 extractJump(rootNodeInfo)
@@ -97,7 +100,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                     root.getBoundsInScreen(rect)
                     val width = rect.right - rect.left
                     val height = rect.bottom - rect.top
-                    Log.e(
+                    Log.d(
                         TAG, "extractJumpForN: $rect --> $width --> " +
                                 "$height --> ${(rect.right + rect.left) / 2}"
                     )
