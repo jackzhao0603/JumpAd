@@ -98,14 +98,6 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         ) {
             result = true
         }
-        Log.v(
-            TAG,
-            "needToHandleEvent: $nowApp/$nowActivity --> " +
-                    "${nowTime - nowActivityShowTime} -> " +
-                    "${event.isScrollable} -> " +
-                    "$jumpRect -> " +
-                    "$result"
-        )
         return result
     }
 
