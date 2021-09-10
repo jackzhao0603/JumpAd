@@ -23,10 +23,16 @@ abstract class AccessibilityHandler(service: AccessibilityService) {
     abstract fun onAccessibilityEvent(event: AccessibilityEvent)
 
     fun getActivityName(event: AccessibilityEvent): String? {
+        if (AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED != event.eventType) {
+            return null
+        }
         var tmp: CharSequence? = event.className ?: return null
         var name = tmp as String
 
-        if (!name.startsWith("android.") && !name.startsWith("androidx.")) {
+        if (!name.startsWith("android.") &&
+            !name.startsWith("androidx.") &&
+            !name.contains(".view.")
+        ) {
             if (screenHeight == 0 && event.source != null) {
                 val rect = Rect()
                 event.source.getBoundsInScreen(rect)
