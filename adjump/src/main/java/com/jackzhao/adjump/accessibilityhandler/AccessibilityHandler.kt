@@ -23,6 +23,9 @@ abstract class AccessibilityHandler(service: AccessibilityService) {
     abstract fun onAccessibilityEvent(event: AccessibilityEvent)
 
     fun getActivityName(event: AccessibilityEvent): String? {
+        if (AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED != event.eventType) {
+            return null
+        }
         var tmp: CharSequence? = event.className ?: return null
         var name = tmp as String
 
