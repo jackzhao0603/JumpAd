@@ -21,6 +21,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
 
     private val jumpStrs = service.resources.getStringArray(R.array.jump_key_words)
     private val ignorePkgs = service.resources.getStringArray(R.array.ignore_pkgs)
+    private val needWaitPkgs = service.resources.getStringArray(R.array.need_wait_app)
     private var jumpRect: Rect? = null
     private val quene = LinkedList<AccessibilityNodeInfo>()
 
@@ -91,6 +92,12 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         if (nowTime - lastJumpTime < 3 * 1000) {
             result = false
         }
+
+        if (jumpPageHash == nowPageHash &&
+            needWaitPkgs.contains(nowApp)
+        ) {
+            result = true
+        }
         Log.v(
             TAG,
             "needToHandleEvent: $nowApp/$nowActivity --> " +
@@ -115,14 +122,8 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                     )
                     jumpRect = null
                     lastJumpTime = System.currentTimeMillis()
-                    tryToClickPoint(point)
-
-                    for (i in 0 until 1) {
-                        Handler().postDelayed({
-                            if (jumpPageHash == nowPageHash) {
-                                tryToClickPoint(point)
-                            }
-                        }, i * 400L + 800)
+                    if (jumpPageHash == nowPageHash) {
+                        tryToClickPoint(point)
                     }
                 }
             } else {

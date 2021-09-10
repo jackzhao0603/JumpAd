@@ -12,4 +12,8 @@
         <item>com.tencent.mm</item>
         <item>com.tencent.mobileqq</item>
     </string-array>
+
+    <string-array name="need_wait_app">
+        <item>com.netease.mail</item>
+    </string-array>
 </resources>
