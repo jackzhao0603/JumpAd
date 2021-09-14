@@ -42,10 +42,10 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         }
         var rect = Rect()
         event.source.getBoundsInScreen(rect)
-        if (rect.top != 0 && rect.left != 0) {
-            return false
+        if (rect.top == 0 && rect.left == 0) {
+            nowPageHash = event.source.hashCode()
         }
-        nowPageHash = event.source.hashCode()
+
 
         val nowTime = System.currentTimeMillis()
         var result = false
