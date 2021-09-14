@@ -89,7 +89,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         if (nowTime - nowActivityShowTime > 10 * 1000) {
             result = false
         }
-        if (nowTime - lastJumpTime < 3 * 1000) {
+        if (nowTime - lastJumpTime < 5 * 1000) {
             result = false
         }
 
@@ -98,14 +98,6 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         ) {
             result = true
         }
-        Log.v(
-            TAG,
-            "needToHandleEvent: $nowApp/$nowActivity --> " +
-                    "${nowTime - nowActivityShowTime} -> " +
-                    "${event.isScrollable} -> " +
-                    "$jumpRect -> " +
-                    "$result"
-        )
         return result
     }
 
@@ -141,24 +133,24 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                 for (i in 0 until root.childCount) {
                     quene.offer(root.getChild(i))
                 }
-                if (root.isClickable && "android.view.View" == root.className) {
-                    var rect = Rect()
-                    root.getBoundsInScreen(rect)
-                    val width = rect.right - rect.left
-                    val height = rect.bottom - rect.top
-                    Log.d(
-                        TAG, "extractJumpForN: $rect --> $width --> " +
-                                "$height --> ${(rect.right + rect.left) / 2}"
-                    )
-                    if (width < screenWidth / 10 && width > 20) {
-                        if (screenWidth - rect.right < screenWidth / 20) {
-                            clickNode(root)
-                        }
-//                        if (rect.left < screenWidth / 20) {
+//                if (root.isClickable && "android.view.View" == root.className) {
+//                    var rect = Rect()
+//                    root.getBoundsInScreen(rect)
+//                    val width = rect.right - rect.left
+//                    val height = rect.bottom - rect.top
+//                    if (width < screenWidth / 10 && width > 20) {
+//                        if (screenWidth - rect.right < screenWidth / 20) {
 //                            clickNode(root)
+//                            Log.d(
+//                                TAG, "extractJumpForN: $rect --> $width --> " +
+//                                        "$height --> ${(rect.right + rect.left) / 2} --> $root"
+//                            )
 //                        }
-                    }
-                }
+////                        if (rect.left < screenWidth / 20) {
+////                            clickNode(root)
+////                        }
+//                    }
+//                }
                 if (root.isEnabled &&
                     root.isVisibleToUser &&
                     !root.className.toString().lowercase().contains("switch") &&
