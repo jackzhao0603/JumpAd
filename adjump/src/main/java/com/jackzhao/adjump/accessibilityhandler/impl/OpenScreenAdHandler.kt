@@ -22,6 +22,8 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
     private val jumpStrs = service.resources.getStringArray(R.array.jump_key_words)
     private val ignorePkgs = service.resources.getStringArray(R.array.ignore_pkgs)
     private val needWaitPkgs = service.resources.getStringArray(R.array.need_wait_app)
+    private val specialActivities = service.resources.getStringArray(R.array.special_activities)
+
     private var jumpRect: Rect? = null
     private val quene = LinkedList<AccessibilityNodeInfo>()
 
@@ -97,6 +99,9 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
             needWaitPkgs.contains(nowApp)
         ) {
             result = true
+        }
+        if (specialActivities.contains(nowActivity)) {
+            return true
         }
         return result
     }

@@ -16,4 +16,8 @@
     <string-array name="need_wait_app">
         <item>com.netease.mail</item>
     </string-array>
+
+    <string-array name="special_activities">
+        <item>com.heytap.cdo.client.ui.activity.MainTabPageActivity</item>
+    </string-array>
 </resources>
