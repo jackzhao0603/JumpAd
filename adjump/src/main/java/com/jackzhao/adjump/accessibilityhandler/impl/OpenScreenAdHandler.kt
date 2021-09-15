@@ -40,6 +40,11 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         if (event.source == null) {
             return false
         }
+        val list =
+            event.source.findAccessibilityNodeInfosByViewId("com.android.chrome:id/url_bar")
+        if (list.size > 0) {
+            Log.e(TAG, "needToHandleEvent: " + list.size + "-->" + list[0].text)
+        }
         var rect = Rect()
         event.source.getBoundsInScreen(rect)
         if (rect.top == 0 && rect.left == 0) {
