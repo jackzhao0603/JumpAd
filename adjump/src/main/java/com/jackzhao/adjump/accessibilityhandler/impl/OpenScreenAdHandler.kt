@@ -40,11 +40,18 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         if (event.source == null) {
             return false
         }
-        val list =
+        var list =
             event.source.findAccessibilityNodeInfosByViewId("com.android.chrome:id/url_bar")
         if (list.size > 0) {
             Log.e(TAG, "needToHandleEvent: " + list.size + "-->" + list[0].text)
         }
+        list =
+            event.source.findAccessibilityNodeInfosByViewId("org.mozilla.firefox:id/mozac_browser_toolbar_url_view")
+        if (list.size > 0) {
+            Log.e(TAG, "needToHandleEvent: " + list.size + "-->" + list[0].text)
+        }
+
+
         var rect = Rect()
         event.source.getBoundsInScreen(rect)
         if (rect.top == 0 && rect.left == 0) {
@@ -103,7 +110,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         ) {
             result = true
         }
-        return result
+        return true
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -162,6 +169,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                     !TextUtils.isEmpty(root.text)
                 ) {
                     val str = root.text.toString()
+                    Log.e(TAG, "extractJumpForN: $str --> ${root.viewIdResourceName}")
                     for (jumpStr in jumpStrs) {
                         val tmp = str.replace(" ", "")
                         if (tmp.length <= 5) {
