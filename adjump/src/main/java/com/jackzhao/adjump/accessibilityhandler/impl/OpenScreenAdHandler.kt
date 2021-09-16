@@ -2,7 +2,6 @@ package com.jackzhao.adjump.accessibilityhandler.impl
 
 import android.accessibilityservice.AccessibilityService
 import android.graphics.Rect
-import android.os.Handler
 import android.text.TextUtils
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -32,25 +31,35 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
     private var nowActivityShowTime = 0L
     private var lastJumpTime = 0L
     private val context = service.baseContext
+    private val mService: AccessibilityService = service
 
     private var nowPageHash = 0
     private var jumpPageHash = 0
+    private var lastUrl = ""
 
     override fun needToHandleEvent(event: AccessibilityEvent): Boolean {
         if (event.source == null) {
             return false
         }
+        var tmp: AccessibilityNodeInfo? = null
         var list =
-            event.source.findAccessibilityNodeInfosByViewId("com.android.chrome:id/url_bar")
+            event.source.findAccessibilityNodeInfosByViewId(
+                "com.android.chrome:id/url_bar")
         if (list.size > 0) {
-            Log.e(TAG, "needToHandleEvent: " + list.size + "-->" + list[0].text)
+            tmp = list[0]
         }
-        list =
-            event.source.findAccessibilityNodeInfosByViewId("org.mozilla.firefox:id/mozac_browser_toolbar_url_view")
+        list = event.source.findAccessibilityNodeInfosByViewId(
+            "org.mozilla.firefox:id/mozac_browser_toolbar_url_view")
         if (list.size > 0) {
-            Log.e(TAG, "needToHandleEvent: " + list.size + "-->" + list[0].text)
+            tmp = list[0]
         }
+        if (tmp?.isFocused == false) {
+            if (tmp?.text != null && lastUrl != tmp.text) {
+                lastUrl = tmp.text.toString()
+                Log.e(TAG, "needToHandleEvent: ${tmp.packageName} -->  $lastUrl")
+            }
 
+        }
 
         var rect = Rect()
         event.source.getBoundsInScreen(rect)
@@ -110,7 +119,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
         ) {
             result = true
         }
-        return true
+        return result
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -169,7 +178,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                     !TextUtils.isEmpty(root.text)
                 ) {
                     val str = root.text.toString()
-                    Log.e(TAG, "extractJumpForN: $str --> ${root.viewIdResourceName}")
+                    Log.d(TAG, "extractJumpForN: $str --> ${root.viewIdResourceName}")
                     for (jumpStr in jumpStrs) {
                         val tmp = str.replace(" ", "")
                         if (tmp.length <= 5) {
