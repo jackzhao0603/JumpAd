@@ -54,8 +54,9 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
             tmp = list[0]
         }
         if (tmp?.isFocused == false) {
-            if (tmp?.text != null && lastUrl != tmp.text) {
-                lastUrl = tmp.text.toString()
+            val nowUrl = tmp.text.toString()
+            if (tmp?.text != null && lastUrl != nowUrl) {
+                lastUrl = nowUrl
                 Log.e(TAG, "needToHandleEvent: ${tmp.packageName} -->  $lastUrl")
             }
 
