@@ -2,7 +2,6 @@ package com.jackzhao.adjump.accessibilityhandler.impl
 
 import android.accessibilityservice.AccessibilityService
 import android.graphics.Rect
-import android.os.Handler
 import android.text.TextUtils
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -43,7 +42,7 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
             return false
         }
         var rect = Rect()
-        event.source.getBoundsInScreen(rect)
+        event.source?.getBoundsInScreen(rect)
         if (rect.top == 0 && rect.left == 0) {
             nowPageHash = event.source.hashCode()
         }
@@ -138,24 +137,6 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                 for (i in 0 until root.childCount) {
                     quene.offer(root.getChild(i))
                 }
-//                if (root.isClickable && "android.view.View" == root.className) {
-//                    var rect = Rect()
-//                    root.getBoundsInScreen(rect)
-//                    val width = rect.right - rect.left
-//                    val height = rect.bottom - rect.top
-//                    if (width < screenWidth / 10 && width > 20) {
-//                        if (screenWidth - rect.right < screenWidth / 20) {
-//                            clickNode(root)
-//                            Log.d(
-//                                TAG, "extractJumpForN: $rect --> $width --> " +
-//                                        "$height --> ${(rect.right + rect.left) / 2} --> $root"
-//                            )
-//                        }
-////                        if (rect.left < screenWidth / 20) {
-////                            clickNode(root)
-////                        }
-//                    }
-//                }
                 if (root.isEnabled &&
                     root.isVisibleToUser &&
                     !root.className.toString().lowercase().contains("switch") &&
@@ -166,17 +147,18 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                         val tmp = str.replace(" ", "")
                         if (tmp.length <= 5) {
                             if (tmp.startsWith(jumpStr) || tmp.endsWith(jumpStr)) {
-                                jumpRect = Rect()
-                                root.getBoundsInScreen(jumpRect)
-                                jumpPageHash = nowPageHash
-                                lastJumpTime = System.currentTimeMillis()
-                                Log.i(
-                                    TAG,
-                                    "extractJumpForN: $str --> $nowApp  --> $nowActivity"
-                                )
+                                clickNodeByLocale(root)
                                 return
                             }
                         }
+                    }
+                }
+                if (root.isClickable && root.viewIdResourceName.contains("skip")) {
+                    if (root.viewIdResourceName.contains("ad") ||
+                        root.viewIdResourceName.contains("splash")
+                    ) {
+                        clickNodeByLocale(root)
+                        return
                     }
                 }
             } catch (e: Exception) {
@@ -185,6 +167,14 @@ class OpenScreenAdHandler(service: AccessibilityService) : AccessibilityHandler(
                 tryRecycle(root)
             }
         }
+    }
+
+    private fun clickNodeByLocale(node: AccessibilityNodeInfo) {
+        Log.e(TAG, "clickNodeByLocale: $node")
+        jumpRect = Rect()
+        node.getBoundsInScreen(jumpRect)
+        jumpPageHash = nowPageHash
+        lastJumpTime = System.currentTimeMillis()
     }
 
     private fun extractJump(rootNodeInfo: AccessibilityNodeInfo) {
